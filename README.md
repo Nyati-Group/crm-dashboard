@@ -142,12 +142,12 @@ The app is a standard Next.js server (`output: 'standalone'`). It needs outbound
 |---|---|---|
 | `DATA_SOURCES` | yes | e.g. `gsheet-public:<SPREADSHEET_ID>\|Nyati Sales MIS` (or `gsheet:` with a service account) |
 | `AUTH_SECRET` | yes | 16+ random characters (e.g. `openssl rand -base64 32`) |
-| `AUTH_USERS` | yes | `email:password:Role;...` (Admin / Sales Head / Viewer). Demo users are disabled in production. |
+| `AUTH_USERS` | yes | `email:password:Role;...` (Admin / Sales Head / Viewer). Use a hash instead of the password: `npm run hash-password -- "the password"` prints `scrypt.…`, e.g. `boss@nyati.com:scrypt.AbC….XyZ…:Admin`. Demo users are disabled in production. |
 | `GEMINI_API_KEY` | recommended | assistant answers; without it, keyword-matching answers |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL` + `GOOGLE_PRIVATE_KEY` | for `gsheet:` sources | see "Pointing it at the Google Sheet" |
 | `CACHE_TTL_SECONDS`, `GEMINI_MODEL`, `CHAT_RATE_LIMIT_PER_MINUTE`, `PORT` | no | defaults 60, `gemini-3.8-flash`, 20, 3000 |
 
-In production the server **refuses to start** if `AUTH_SECRET`, `AUTH_USERS` or `DATA_SOURCES` is missing, and the error names the missing setting.
+If `AUTH_SECRET`, `AUTH_USERS` or `DATA_SOURCES` is missing in production, every page shows a **"Setup required"** page naming the missing settings (names only, never values), `/api/health` returns 503, and the server log says the same.
 
 ### Option A: Docker (any cloud VM, Azure App Service, AWS ECS/App Runner, Google Cloud Run)
 
@@ -170,7 +170,12 @@ Set the variables in the environment (or `.env.production.local` next to the app
 
 ### Option C: Vercel
 
-Import the project and add the variables under *Settings → Environment Variables*. Note: the 60-second cache and the rate limits are per server instance.
+1. *Add New → Project*, import `Nyati-Group/crm-dashboard` (framework: Next.js, defaults are fine).
+2. *Settings → Environment Variables*: add `DATA_SOURCES`, `AUTH_SECRET`, `AUTH_USERS` and `GEMINI_API_KEY` for Production (and Preview if used). Paste values without quotes.
+3. *Deployments → ⋯ → Redeploy* (variables only apply to new deployments).
+4. Open `https://<your-app>.vercel.app/api/health`: `{"ok":true}` means the settings are complete.
+
+`vercel.json` runs the functions in Mumbai (`bom1`), close to the users and to Google. The 60-second data cache and the rate limits are per server instance.
 
 ### Before going live
 

@@ -8,6 +8,8 @@ import { requireSession } from '@/lib/auth/current';
 import { NAV } from '@/lib/auth/roles';
 
 export const dynamic = 'force-dynamic';
+// First load downloads the Google Sheet; allow for a slow response on serverless hosts.
+export const maxDuration = 30;
 
 export default async function DashLayout({ children }: { children: React.ReactNode }) {
   const session = await requireSession();

@@ -1,4 +1,5 @@
 import 'server-only';
+import { verifyPassword } from './password';
 import { isRole, type Role } from './roles';
 
 /**
@@ -39,6 +40,6 @@ function users(): User[] {
 
 export function authenticate(email: string, password: string): { email: string; role: Role } | null {
   const u = users().find((x) => x.email === email.trim().toLowerCase());
-  if (!u || u.password !== password) return null;
+  if (!u || !verifyPassword(password, u.password)) return null;
   return { email: u.email, role: u.role };
 }

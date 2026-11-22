@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
+import { missingSettings } from '@/lib/env-check';
 
 export const dynamic = 'force-dynamic';
 
-/** Liveness probe for the host. Reveals nothing about the data. */
+/** Liveness / readiness probe. Reports only whether the server is configured, never any data or values. */
 export function GET() {
-  return NextResponse.json({ ok: true });
+  const ready = missingSettings().length === 0;
+  return NextResponse.json({ ok: ready }, { status: ready ? 200 : 503 });
 }

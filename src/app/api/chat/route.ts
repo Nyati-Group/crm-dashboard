@@ -6,6 +6,8 @@ import { GREETING_RE, GREETING_REPLY, OUT_OF_SCOPE_MARKER, OUT_OF_SCOPE_REPLY } 
 import { loadAllSources } from '@/lib/data/loader';
 
 export const dynamic = 'force-dynamic';
+// Allow time for the sheet download and the streamed Gemini answer (serverless hosts such as Vercel).
+export const maxDuration = 60;
 
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const GEMINI_URL = (model: string) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
