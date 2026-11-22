@@ -28,20 +28,29 @@ describe('AUTH_USERS login', () => {
     expect(authenticate('view@nyati.com', 'plain-pass')?.role).toBe('Viewer');
   });
 
-  it('has no demo users in production', () => {
+  it('uses the demo users in production when AUTH_USERS is not set', () => {
     vi.stubEnv('NODE_ENV', 'production');
     vi.stubEnv('AUTH_USERS', '');
+    expect(authenticate('admin@nyati.local', 'admin123')?.role).toBe('Admin');
+    expect(authenticate('saleshead@nyati.local', 'sales123')?.role).toBe('Sales Head');
+    expect(authenticate('viewer@nyati.local', 'viewer123')?.role).toBe('Viewer');
+    expect(authenticate('admin@nyati.local', 'wrong')).toBeNull();
+  });
+
+  it('replaces the demo users when AUTH_USERS is set', () => {
+    vi.stubEnv('AUTH_USERS', 'boss@nyati.com:pw-12345:Admin');
     expect(authenticate('admin@nyati.local', 'admin123')).toBeNull();
   });
 });
 
 describe('production settings check', () => {
   it('names only the missing settings, never values', () => {
-    const missing = missingSettings({ NODE_ENV: 'production', AUTH_SECRET: 'x'.repeat(32), DATA_SOURCES: 'gsheet-public:abc|S' });
-    expect(missing).toEqual(['AUTH_USERS']);
+    expect(missingSettings({ NODE_ENV: 'production', AUTH_SECRET: 'x'.repeat(32), DATA_SOURCES: 'gsheet-public:abc|S' })).toEqual([]);
+    const missing = missingSettings({ NODE_ENV: 'production', DATA_SOURCES: 'gsheet-public:abc|S' });
+    expect(missing).toEqual(['AUTH_SECRET']);
     const html = setupPageHtml(missing);
-    expect(html).toContain('AUTH_USERS');
-    expect(html).not.toContain('x'.repeat(32));
+    expect(html).toContain('AUTH_SECRET');
+    expect(html).not.toContain('gsheet-public:abc');
   });
 
   it('is silent outside production', () => {

@@ -5,8 +5,8 @@ import { isRole, type Role } from './roles';
 /**
  * STUB user store. Users come from AUTH_USERS="email:password:Role;email:password:Role".
  * Roles: Admin | Sales Head | Viewer.
- * In development only, when AUTH_USERS is not set, three demo users are available
- * (listed on the login page). They are disabled in production.
+ * When AUTH_USERS is not set, the three demo users below are used (listed on the login page),
+ * in development and production. Setting AUTH_USERS replaces them.
  */
 interface User {
   email: string;
@@ -20,8 +20,9 @@ export const DEV_DEMO_USERS: User[] = [
   { email: 'viewer@nyati.local', password: 'viewer123', role: 'Viewer' },
 ];
 
+/** Demo users are used whenever AUTH_USERS is not set (development and production). */
 export function usingDemoUsers(): boolean {
-  return !process.env.AUTH_USERS?.trim() && process.env.NODE_ENV !== 'production';
+  return !process.env.AUTH_USERS?.trim();
 }
 
 function users(): User[] {

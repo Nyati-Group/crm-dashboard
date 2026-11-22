@@ -16,7 +16,7 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-With no `.env.local`, the app offers every `.xlsx` file in `data/` and `data/fixtures/`, and the login page lists three **development-only** demo users (Admin / Sales Head / Viewer).
+With no `.env.local`, the app offers every `.xlsx` file in `data/` and `data/fixtures/`, and the login page lists three demo users (Admin / Sales Head / Viewer).
 
 To use your own sources and users, copy `.env.example` to `.env.local` and fill it in (see below).
 
@@ -142,12 +142,12 @@ The app is a standard Next.js server (`output: 'standalone'`). It needs outbound
 |---|---|---|
 | `DATA_SOURCES` | yes | e.g. `gsheet-public:<SPREADSHEET_ID>\|Nyati Sales MIS` (or `gsheet:` with a service account) |
 | `AUTH_SECRET` | yes | 16+ random characters (e.g. `openssl rand -base64 32`) |
-| `AUTH_USERS` | yes | `email:password:Role;...` (Admin / Sales Head / Viewer). Use a hash instead of the password: `npm run hash-password -- "the password"` prints `scrypt.…`, e.g. `boss@nyati.com:scrypt.AbC….XyZ…:Admin`. Demo users are disabled in production. |
+| `AUTH_USERS` | no | When empty, the demo users can sign in (see "Login and roles"). To use real users instead: `email:password:Role;...` (Admin / Sales Head / Viewer). Use a hash instead of the password: `npm run hash-password -- "the password"` prints `scrypt.…`, e.g. `boss@nyati.com:scrypt.AbC….XyZ…:Admin`. |
 | `GEMINI_API_KEY` | recommended | assistant answers; without it, keyword-matching answers |
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL` + `GOOGLE_PRIVATE_KEY` | for `gsheet:` sources | see "Pointing it at the Google Sheet" |
 | `CACHE_TTL_SECONDS`, `GEMINI_MODEL`, `CHAT_RATE_LIMIT_PER_MINUTE`, `PORT` | no | defaults 60, `gemini-3.8-flash`, 20, 3000 |
 
-If `AUTH_SECRET`, `AUTH_USERS` or `DATA_SOURCES` is missing in production, every page shows a **"Setup required"** page naming the missing settings (names only, never values), `/api/health` returns 503, and the server log says the same.
+If `AUTH_SECRET` or `DATA_SOURCES` is missing in production, every page shows a **"Setup required"** page naming the missing settings (names only, never values), `/api/health` returns 503, and the server log says the same.
 
 ### Option A: Docker (any cloud VM, Azure App Service, AWS ECS/App Runner, Google Cloud Run)
 
@@ -171,7 +171,7 @@ Set the variables in the environment (or `.env.production.local` next to the app
 ### Option C: Vercel
 
 1. *Add New → Project*, import `Nyati-Group/crm-dashboard` (framework: Next.js, defaults are fine).
-2. *Settings → Environment Variables*: add `DATA_SOURCES`, `AUTH_SECRET`, `AUTH_USERS` and `GEMINI_API_KEY` for Production (and Preview if used). Paste values without quotes.
+2. *Settings → Environment Variables*: add `DATA_SOURCES`, `AUTH_SECRET` and `GEMINI_API_KEY` (plus `AUTH_USERS` for real users) for Production (and Preview if used). Paste values without quotes.
 3. *Deployments → ⋯ → Redeploy* (variables only apply to new deployments).
 4. Open `https://<your-app>.vercel.app/api/health`: `{"ok":true}` means the settings are complete.
 
@@ -195,7 +195,7 @@ Set the variables in the environment (or `.env.production.local` next to the app
 | Sales Head | All pages; can switch data source |
 | Viewer | All pages; default source only |
 
-In production, `AUTH_SECRET` (16+ characters) and `AUTH_USERS` are required, and the demo users are disabled.
+In production, `AUTH_SECRET` (16+ characters) is required. While `AUTH_USERS` is empty, the demo users `admin@nyati.local` / `admin123` (Admin), `saleshead@nyati.local` / `sales123` (Sales Head) and `viewer@nyati.local` / `viewer123` (Viewer) can sign in, in production too, and are listed on the login page. Setting `AUTH_USERS` replaces them.
 
 ---
 

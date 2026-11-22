@@ -6,14 +6,12 @@ export function missingSettings(env: Record<string, string | undefined> = proces
   if (env.NODE_ENV !== 'production') return [];
   const missing: string[] = [];
   if (!env.AUTH_SECRET || env.AUTH_SECRET.length < 16) missing.push('AUTH_SECRET');
-  if (!env.AUTH_USERS?.trim()) missing.push('AUTH_USERS');
   if (!env.DATA_SOURCES?.trim()) missing.push('DATA_SOURCES');
   return missing;
 }
 
 const HELP: Record<string, string> = {
   AUTH_SECRET: 'at least 16 random characters, used to sign login sessions',
-  AUTH_USERS: 'who can sign in: email:password:Role;email:password:Role (Role = Admin, Sales Head or Viewer)',
   DATA_SOURCES: 'the data source, e.g. gsheet-public:<SPREADSHEET_ID>|Nyati Sales MIS',
 };
 
