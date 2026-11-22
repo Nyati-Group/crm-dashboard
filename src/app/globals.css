@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens (RGB triplets so Tailwind can apply opacity).
+ * Brand: Nyati navy from the logo. Series colours validated with the dataviz palette
+ * validator (CVD + contrast) in both modes: 1 = Actual/Achieved (Nyati blue),
+ * 2 = Budget/Target (orange), 3 = third series (aqua). Status colours are reserved.
+ */
+:root {
+  color-scheme: light;
+  --page: 243 246 251;
+  --surface: 255 255 255;
+  --surface-2: 246 248 252;
+  --line: 223 228 238;
+  --ink: 13 24 48;
+  --ink-2: 63 76 102;
+  --muted: 98 109 130;
+  --brand: 30 63 138;
+  --brand-2: 42 98 196;
+  --brand-ink: 255 255 255;
+  --header: 30 63 138;
+  --good: 12 163 12;
+  --good-ink: 0 110 0;
+  --warn: 250 178 25;
+  --warn-ink: 128 82 0;
+  --bad: 208 59 59;
+  --bad-ink: 176 36 36;
+  --series-1: 31 86 179;
+  --series-2: 235 104 52;
+  --series-3: 27 175 122;
+  --neutral: 168 172 182;
+  --grid: 231 234 241;
+  --axis: 194 201 214;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --page: 10 15 28;
+    --surface: 20 27 43;
+    --surface-2: 26 35 54;
+    --line: 45 56 78;
+    --ink: 237 241 249;
+    --ink-2: 186 196 215;
+    --muted: 146 157 178;
+    --brand: 140 176 240;
+    --brand-2: 108 152 232;
+    --brand-ink: 10 20 45;
+    --header: 16 33 74;
+    --good: 12 163 12;
+    --good-ink: 52 199 52;
+    --warn: 250 178 25;
+    --warn-ink: 250 190 70;
+    --bad: 208 59 59;
+    --bad-ink: 240 120 120;
+    --series-1: 76 134 224;
+    --series-2: 217 89 38;
+    --series-3: 25 158 112;
+    --neutral: 98 106 122;
+    --grid: 38 48 68;
+    --axis: 62 74 98;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --page: 10 15 28;
+  --surface: 20 27 43;
+  --surface-2: 26 35 54;
+  --line: 45 56 78;
+  --ink: 237 241 249;
+  --ink-2: 186 196 215;
+  --muted: 146 157 178;
+  --brand: 140 176 240;
+  --brand-2: 108 152 232;
+  --brand-ink: 10 20 45;
+  --header: 16 33 74;
+  --good: 12 163 12;
+  --good-ink: 52 199 52;
+  --warn: 250 178 25;
+  --warn-ink: 250 190 70;
+  --bad: 208 59 59;
+  --bad-ink: 240 120 120;
+  --series-1: 76 134 224;
+  --series-2: 217 89 38;
+  --series-3: 25 158 112;
+  --neutral: 98 106 122;
+  --grid: 38 48 68;
+  --axis: 62 74 98;
+}
+
+html,
+body {
+  background: rgb(var(--page));
+  color: rgb(var(--ink));
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Recharts: keep focus rings visible, remove the default outline box on click */
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none;
+}
+
+@media (forced-colors: active) {
+  .recharts-rectangle {
+    forced-color-adjust: none;
+  }
+}
+
+/* Native tooltip-friendly underline for values with an exact amount on hover */
+.exact-hover {
+  text-decoration: underline dotted rgb(var(--muted) / 0.6);
+  text-underline-offset: 3px;
+  cursor: help;
+}

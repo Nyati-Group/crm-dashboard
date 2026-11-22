@@ -1,0 +1,48 @@
+{
+  "name": "nyati-crm-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": ">=20" },
+  "description": "Nyati CRM / Sales dashboard - sales, registration, collection and outstanding vs budget",
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "fixtures": "tsx scripts/make-fixtures.ts",
+    "check-source": "tsx --conditions=react-server scripts/check-source.ts",
+    "smoke": "tsx --conditions=react-server scripts/smoke.ts",
+    "chat-check": "tsx --conditions=react-server scripts/chat-check.ts"
+  },
+  "dependencies": {
+    "@googleapis/sheets": "^9.8.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "next": "15.5.29",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "recharts": "^3.1.2",
+    "server-only": "^0.0.1",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "^3.25.76"
+  },
+  "overrides": {
+    "esbuild": "npm:esbuild-wasm@0.28.2",
+    "rollup": "npm:@rollup/wasm-node@4.68.8"
+  },
+  "devDependencies": {
+    "@next/swc-wasm-nodejs": "15.5.29",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

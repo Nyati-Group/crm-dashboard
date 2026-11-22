@@ -1,0 +1,18 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# secrets
+.env
+.env.local
+.env.*.local
+*.pem
+service-account*.json
+
+# company data never goes into the repo
+data/*.xlsx
+data/*.csv
+data/csv/
+data/fixtures/

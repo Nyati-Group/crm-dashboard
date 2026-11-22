@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.vscode
+*.log
+# secrets and company data never go into the image
+.env
+.env.*
+!.env.example
+data
+tests
+coverage
