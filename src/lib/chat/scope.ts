@@ -7,4 +7,4 @@ export const OUT_OF_SCOPE_MARKER = 'OUT_OF_SCOPE';
 
 export const GREETING_RE = /^(hi|hii+|hello|hey|namaste|good (morning|afternoon|evening)|thanks|thank you|ok|okay)\b[\s!.?]*$/i;
 export const GREETING_REPLY =
-  'Hello! I can answer questions about Nyati sales, collection, registration, outstanding and project details in this dashboard. For example: "What is the annual collection vs budget?"';
+  'Hello! I can answer questions about Nyati sales, collection, registration, outstanding and project details in this dashboard. For example: "What is the annual collection vs target?"';

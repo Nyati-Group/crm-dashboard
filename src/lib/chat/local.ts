@@ -10,7 +10,7 @@ const TOPICS: { section: RegExp; words: RegExp }[] = [
   { section: /^## Sales & collection summary/i, words: /\b(budget|actual|kpi|units? sold|sales value|area|rate|sq\.?ft|achiev|target|variance|performance|overview|summary)/i },
   { section: /^## Registration/i, words: /\b(regist|unregist|agreement|days since sale|120)/i },
   { section: /^## Project sales/i, words: /\b(project sales|target|booking|sold|units)/i },
-  { section: /^## Collection vs budget/i, words: /\b(collect|budget)/i },
+  { section: /^## Collection vs target/i, words: /\b(collect|budget|target)/i },
   { section: /^## Collection summary/i, words: /\b(due|milestone|collected|collection|outstanding|o\/s|receivable|sold value)/i },
   { section: /^## Outstanding by age/i, words: /\b(outstanding|ageing|aging|overdue|days|o\/s|receivable)/i },
   { section: /^## Project general information/i, words: /\b(rera|configuration|bhk|building|start date|completion|possession|saleable|project info)/i },

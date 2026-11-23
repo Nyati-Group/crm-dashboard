@@ -13,7 +13,13 @@ const nextConfig = {
   // Server-only libraries that should be required at runtime, not bundled.
   serverExternalPackages: ['xlsx', '@googleapis/sheets'],
   poweredByHeader: false,
+  // dev-only Next.js badge: off, so it never covers the navbar or the copilot button
+  devIndicators: false,
   eslint: { ignoreDuringBuilds: true },
+  // Everything now lives on the single Overview page; keep old bookmarks working.
+  async redirects() {
+    return ['/sales', '/registration', '/collection', '/projects'].map((source) => ({ source, destination: '/', permanent: false }));
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },

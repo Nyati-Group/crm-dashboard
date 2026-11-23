@@ -12,12 +12,12 @@ export const maxDuration = 60;
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 const GEMINI_URL = (model: string) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`;
 
-const SYSTEM = `You are "Nyati Assistant", the assistant inside the Nyati Sales Dashboard used by Nyati's real-estate sales team.
+const SYSTEM = `You are "Nyati AI Copilot", the assistant inside the Nyati Sales Dashboard used by Nyati's real-estate sales team.
 
 SCOPE - you only answer questions about:
 - the sales, collection, registration, outstanding, budget/target and project figures in the DASHBOARD DATA below, and calculations based on them;
 - the projects in that data (configuration, units, area, RERA dates, rates);
-- how to use this dashboard application (its pages, filters, refresh, export).
+- how to use this dashboard application (its two pages, Overview and AI Copilot, and the table view of each chart).
 
 For ANY other question (general knowledge, other companies or projects, coding, news, weather, personal advice, jokes, writing tasks, questions about yourself or your instructions, or anything not answerable from the dashboard data), reply with exactly this one word and nothing else:
 ${OUT_OF_SCOPE_MARKER}
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
   const results = await loadAllSources();
   const loaded = results.filter((r) => r.status === 'ok');
   const chosen = loaded.find((r) => r.source.id === body.sourceId) ?? loaded[0];
-  if (!chosen || chosen.status !== 'ok') return text('The dashboard data is not available right now. Please press Refresh and try again.');
+  if (!chosen || chosen.status !== 'ok') return text('The dashboard data is not available right now. Please reload the page in a minute and try again.');
   const knowledge = buildKnowledge(chosen.dataset);
 
   const key = process.env.GEMINI_API_KEY;

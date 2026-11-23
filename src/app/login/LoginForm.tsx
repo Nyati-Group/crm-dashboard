@@ -1,5 +1,6 @@
 'use client';
 
+import { TriangleAlert } from 'lucide-react';
 import { useActionState } from 'react';
 import { loginAction } from '../actions';
 
@@ -29,7 +30,8 @@ export function LoginForm({ next }: { next: string }) {
         />
       </label>
       {state?.error && (
-        <p role="alert" className="text-sm text-badInk">
+        <p role="alert" className="flex items-start gap-2 rounded-lg border border-bad/30 bg-bad/5 px-3 py-2 text-sm text-badInk">
+          <TriangleAlert aria-hidden className="mt-0.5 h-4 w-4 shrink-0" />
           {state.error}
         </p>
       )}

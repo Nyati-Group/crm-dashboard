@@ -24,7 +24,7 @@ const CASES: Case[] = [
   { q: 'What is the total outstanding for Nyati Elenor commercial?', expect: 'answer', mustInclude: /4\.10/ },
   { q: 'When is the RERA completion of Nyati Elenor?', expect: 'answer', mustInclude: /30\/10\/2029/ },
   { q: 'How much more collection is needed to reach the quarter budget?', expect: 'answer', mustInclude: /9\.43/ },
-  { q: 'Which page shows the ageing of outstanding?', expect: 'answer', mustInclude: /Collection/i },
+  { q: 'Which page shows the ageing of outstanding?', expect: 'answer', mustInclude: /Overview|Outstanding by age/i },
   { q: 'What is the capital of France?', expect: 'refuse' },
   { q: 'Write a Python function to sort a list', expect: 'refuse' },
   { q: 'What is the weather in Pune today?', expect: 'refuse' },

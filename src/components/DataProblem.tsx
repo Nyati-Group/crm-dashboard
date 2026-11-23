@@ -30,7 +30,7 @@ export function DataProblem({ ctx }: { ctx: PageContext }) {
             <p className="mt-1 text-sm text-ink2">
               <strong>{r.source.label}</strong>: {r.message}
             </p>
-            <p className="mt-2 text-sm text-muted">Nothing is shown rather than showing empty or zero figures. Choose another source above, or fix the source and press Refresh.</p>
+            <p className="mt-2 text-sm text-muted">Nothing is shown rather than showing empty or zero figures. Fix the source, then reload the page in a minute.</p>
           </div>
         </div>
       </Card>
@@ -68,7 +68,7 @@ export function DataProblem({ ctx }: { ctx: PageContext }) {
             </table>
           </div>
           <p className="mt-4 text-sm text-muted">
-            Restore the original tab / column names in the sheet (they are the contract listed in the README), then press Refresh.
+            Restore the original tab / column names in the sheet (they are the contract listed in the README), then reload the page in a minute.
           </p>
         </div>
       </div>

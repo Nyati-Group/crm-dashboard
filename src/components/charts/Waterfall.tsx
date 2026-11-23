@@ -2,6 +2,8 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatExact } from '@/lib/format';
+import { useEffect, useState } from 'react';
+import { useChartAnimation } from '../motion';
 import { AXIS, axisFormat, niceScale } from './chartUtils';
 
 export interface WaterfallStep {
@@ -20,15 +22,46 @@ export interface WaterfallStep {
  * Bridge chart: Total sold value | Due -> Collected (step down) -> Outstanding (result).
  * Floating bars with dashed connectors; a result below zero is an Advance (collected ahead of milestone).
  */
+/** True on phone-width screens, so labels can shrink and axis names wrap. */
+function useNarrow(max = 520) {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const m = window.matchMedia(`(max-width: ${max}px)`);
+    const update = () => setNarrow(m.matches);
+    update();
+    m.addEventListener('change', update);
+    return () => m.removeEventListener('change', update);
+  }, [max]);
+  return narrow;
+}
+
+/** Axis name on up to two lines (\"Registered O/s\" -> \"Registered\" / \"O/s\"). */
+function WrappedTick({ x, y, payload, size, short }: { x?: number; y?: number; payload?: { value: string }; size: number; short?: boolean }) {
+  const name = String(payload?.value ?? '');
+  const words = (short ? name.replace(/^Unregistered\b/, 'Unreg.').replace(/^Registered\b/, 'Reg.') : name).split(' ');
+  const lines = words.length > 1 ? [words.slice(0, Math.ceil(words.length / 2)).join(' '), words.slice(Math.ceil(words.length / 2)).join(' ')] : words;
+  return (
+    <text x={x} y={(y ?? 0) + 4} textAnchor="middle" fontSize={size} fill="rgb(var(--ink-2))">
+      {lines.map((l, i) => (
+        <tspan key={i} x={x} dy={i === 0 ? '0.71em' : '1.15em'}>
+          {l}
+        </tspan>
+      ))}
+    </text>
+  );
+}
+
 export function Waterfall({ steps, ariaLabel, height = 300 }: { steps: WaterfallStep[]; ariaLabel: string; height?: number }) {
+  const anim = useChartAnimation();
+  const narrow = useNarrow();
   const scale = niceScale(steps.flatMap((s) => s.range), { headroom: 0.12 });
   return (
     <div role="img" aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height={height}>
-        <BarChart data={steps} margin={{ top: 22, right: 8, bottom: 0, left: 0 }} barCategoryGap="26%">
+        <BarChart data={steps} margin={{ top: 22, right: narrow ? 2 : 8, bottom: 0, left: 0 }} barCategoryGap={narrow ? '14%' : '26%'}>
           <CartesianGrid stroke={AXIS.grid} strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="name" tick={{ ...AXIS.tick, fill: 'rgb(var(--ink-2))' }} axisLine={false} tickLine={false} interval={0} />
-          <YAxis type="number" domain={scale.domain} ticks={scale.ticks} tickFormatter={axisFormat('inr')} tick={AXIS.tick} axisLine={false} tickLine={false} width={68} />
+          <XAxis dataKey="name" tick={<WrappedTick size={narrow ? 10 : 11} short={narrow} />} height={36} axisLine={false} tickLine={false} interval={0} />
+          <YAxis type="number" domain={scale.domain} ticks={scale.ticks} tickFormatter={axisFormat('inr')} tick={AXIS.tick} axisLine={false} tickLine={false} width={narrow ? 46 : 68} />
           <ReferenceLine y={0} stroke="rgb(var(--axis))" />
           {steps.map((s, i) =>
             s.connectTo !== undefined && steps[i + 1] ? (
@@ -61,16 +94,16 @@ export function Waterfall({ steps, ariaLabel, height = 300 }: { steps: Waterfall
           <Bar
             dataKey="range"
             maxBarSize={64}
-            radius={3}
-            isAnimationActive={false}
+            radius={4}
+            {...anim()}
             label={(p: { x?: number | string; y?: number | string; width?: number | string; height?: number | string; index?: number }) => {
               const s = steps[p.index ?? 0];
               if (!s) return <g />;
               const y = Number(p.y);
               const h = Number(p.height);
               return (
-                <text x={Number(p.x) + Number(p.width) / 2} y={Math.min(y, y + h) - 7} textAnchor="middle" fontSize={11} fontWeight={600} fill="rgb(var(--ink))">
-                  {s.label}
+                <text x={Number(p.x) + Number(p.width) / 2} y={Math.min(y, y + h) - 7} textAnchor="middle" fontSize={narrow ? 9 : 11} fontWeight={600} fill="rgb(var(--ink))">
+                  {narrow ? s.label.replace(/^(−?)₹/, '$1').replace(' Lakh', ' L') : s.label}
                 </text>
               );
             }}

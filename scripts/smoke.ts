@@ -16,13 +16,12 @@ function loadEnvFile(file: string) {
   }
 }
 
+// Single-page dashboard: every section is on the Overview.
 const PAGES: [string, RegExp][] = [
-  ['/', /Budget vs Actual|Project health/],
-  ['/sales', /Target vs Achieved/],
-  ['/registration', /Registration status/],
-  ['/collection', /Collection vs budget/],
-  ['/projects', /Units/],
+  ['/', /Project at a glance[\s\S]*Target vs achieved[\s\S]*Unit inventory[\s\S]*Outstanding by age/],
+  ['/copilot', /AI Copilot[\s\S]*How can I help/],
 ];
+const OLD_PAGES = ['/sales', '/registration', '/collection', '/projects'];
 
 async function main() {
   loadEnvFile('.env.local');
@@ -54,6 +53,13 @@ async function main() {
       const test = /Test data, not real company figures|Data Quality/i.test(html) ? ' [UNWANTED TEST/DQ TEXT]' : '';
       console.log(`${bad ? 'FAIL' : 'pass'}  ${s.label.padEnd(30)} ${page.padEnd(14)} ${verdict}${test}`);
     }
+  }
+
+  for (const page of OLD_PAGES) {
+    const res = await get(page, admin);
+    const okRedirect = res.status >= 300 && res.status < 400 && new URL(res.headers.get('location') ?? '', base).pathname === '/';
+    if (!okRedirect) failures++;
+    console.log(`${okRedirect ? 'pass' : 'FAIL'}  old page ${page} redirects to the Overview (${res.status})`);
   }
 
   const anon = await get('/');

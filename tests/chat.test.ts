@@ -10,7 +10,7 @@ const knowledge = buildKnowledge(reconcileDataset(parseTabs(cleanWorkbook())));
 
 describe('assistant knowledge', () => {
   it('contains every dashboard section', () => {
-    for (const h of ['Sales & collection summary', 'Project sales', 'Registration', 'Collection vs budget', 'Collection summary', 'Outstanding by age', 'Project general information', 'Project summary']) {
+    for (const h of ['Sales & collection summary', 'Project sales', 'Registration', 'Collection vs target', 'Collection summary', 'Outstanding by age', 'Project general information', 'Project summary']) {
       expect(knowledge).toContain(`## ${h}`);
     }
   });

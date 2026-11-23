@@ -1,30 +1,17 @@
 import clsx from 'clsx';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
-import { formatPct, formatValue, type ValueKind } from '@/lib/format';
+import { formatValue, type ValueKind } from '@/lib/format';
 import { STATUS_LABEL, statusFromRatio, type Comparison, type Status } from '@/lib/metrics';
 import type { NumCell } from '@/lib/schema';
+import { Ring } from './charts/Ring';
+import { CountUp } from './motion';
 import { Num, StatusBadge } from './ui';
-
-const FILL: Record<Status, string> = { good: 'bg-good', warning: 'bg-warn', critical: 'bg-bad', unknown: 'bg-neutral' };
-
-/** Meter: share of target achieved, capped at the track; a tick marks 100%. */
-function Meter({ ratio, status }: { ratio: number | null; status: Status }) {
-  // The track spans 0–125% so over-achievement stays visible; the tick sits at 100%.
-  const span = 1.25;
-  const width = ratio === null ? 0 : Math.max(0, Math.min(span, ratio)) / span;
-  return (
-    <div className="relative h-1.5 w-full rounded-full bg-brand/10" aria-hidden>
-      <div className={clsx('h-full rounded-full', FILL[status])} style={{ width: `${width * 100}%` }} />
-      <div className="absolute -top-1 h-3.5 w-px bg-ink2/70" style={{ left: `${(1 / span) * 100}%` }} />
-    </div>
-  );
-}
 
 function Delta({ value, kind }: { value: number | null; kind: ValueKind }) {
   if (value === null) return <span className="text-muted">—</span>;
   const Icon = value > 0 ? ArrowUpRight : value < 0 ? ArrowDownRight : Minus;
   return (
-    <span className={clsx('inline-flex items-center gap-0.5 font-semibold', value > 0 ? 'text-goodInk' : value < 0 ? 'text-badInk' : 'text-ink2')}>
+    <span className={clsx('inline-flex items-center gap-0.5 font-semibold tabular', value > 0 ? 'text-goodInk' : value < 0 ? 'text-badInk' : 'text-ink2')}>
       <Icon aria-hidden className="h-3.5 w-3.5" />
       {value > 0 ? '+' : ''}
       {formatValue(kind, value)}
@@ -32,82 +19,88 @@ function Delta({ value, kind }: { value: number | null; kind: ValueKind }) {
   );
 }
 
-/** KPI card: Actual (big), Budget, % of budget meter, variance with direction arrow, status icon + label. */
-export function KpiCard({
-  label,
-  kind,
-  cmp,
-  budgetLabel = 'Budget',
-}: {
-  label: string;
-  kind: ValueKind;
-  cmp: Comparison;
-  budgetLabel?: string;
-}) {
+function CardFrame({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  return (
+    <div
+      className="card-hover animate-rise relative flex flex-col gap-3 overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-sm"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <span aria-hidden className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-brand via-brand2 to-s3" />
+      {children}
+    </div>
+  );
+}
+
+function Head({ label, icon, status, statusLabel }: { label: string; icon?: React.ReactNode; status: Status; statusLabel: string }) {
+  return (
+    <div className="flex items-start justify-between gap-2">
+      <p className="flex items-center gap-2 text-sm font-medium text-ink2">
+        {icon && <span className="rounded-lg bg-brand/10 p-1.5 text-brand [&>svg]:h-4 [&>svg]:w-4">{icon}</span>}
+        {label}
+      </p>
+      <StatusBadge status={status} label={statusLabel} />
+    </div>
+  );
+}
+
+function BigFigure({ cell, kind }: { cell: NumCell | undefined; kind: ValueKind }) {
+  return (
+    <p className="text-[26px] font-bold leading-tight tracking-tight text-ink tabular">
+      {cell?.status === 'ok' && cell.value !== null ? <CountUp value={cell.value} kind={kind} /> : <Num cell={cell} kind={kind} />}
+    </p>
+  );
+}
+
+/** Ring (achieved as % of target) beside the target and the gap to it. */
+function Gauge({ ratio, status, target, kind, variance, label }: { ratio: number | null; status: Status; target: NumCell | undefined; kind: ValueKind; variance: number | null; label: string }) {
+  return (
+    <div className="flex items-center gap-3.5">
+      <Ring ratio={ratio} status={status} label={`${label}: ${ratio === null ? 'no figure' : `${Math.round(ratio * 100)}% of target`}`} />
+      <dl className="min-w-0 space-y-1.5 text-xs">
+        <div>
+          <dt className="text-muted">Target</dt>
+          <dd className="text-sm font-semibold text-ink">
+            <Num cell={target} kind={kind} />
+          </dd>
+        </div>
+        <div>
+          <dt className="text-muted">{variance !== null && variance >= 0 ? 'Ahead of target' : 'Short of target'}</dt>
+          <dd className="text-sm">
+            <Delta value={variance} kind={kind} />
+          </dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+/** KPI card: achieved (big), then a ring of achieved vs target, the target and the variance. */
+export function KpiCard({ label, kind, cmp, icon, delay }: { label: string; kind: ValueKind; cmp: Comparison; icon?: React.ReactNode; delay?: number }) {
   const ratio = cmp.sheetPct?.status === 'ok' ? cmp.sheetPct.value : cmp.computedRatio;
   const variance = cmp.sheetVariance?.status === 'ok' ? cmp.sheetVariance.value : cmp.computedVariance;
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium text-ink2">{label}</p>
-        <StatusBadge status={cmp.status} label={SHORT[cmp.status]} />
-      </div>
-      <div>
-        <p className="text-2xl font-semibold leading-tight text-ink">
-          <Num cell={cmp.achieved} kind={kind} />
-        </p>
-        <p className="mt-0.5 text-xs text-muted">
-          {budgetLabel} <Num cell={cmp.target} kind={kind} className="font-medium text-ink2" />
-        </p>
-      </div>
-      <Meter ratio={ratio} status={cmp.status} />
-      <div className="flex items-center justify-between text-xs">
-        <Delta value={variance} kind={kind} />
-        <span className="font-semibold tabular text-ink">{ratio === null ? '—' : `${formatPct(ratio)} of ${budgetLabel.toLowerCase()}`}</span>
-      </div>
-    </div>
+    <CardFrame delay={delay}>
+      <Head label={label} icon={icon} status={cmp.status} statusLabel={SHORT[cmp.status]} />
+      <BigFigure cell={cmp.achieved} kind={kind} />
+      <Gauge ratio={ratio} status={cmp.status} target={cmp.target} kind={kind} variance={variance} label={label} />
+    </CardFrame>
   );
 }
 
 const SHORT: Record<Status, string> = { good: 'On track', warning: 'Slightly behind', critical: 'Behind', unknown: STATUS_LABEL.unknown };
 
 /** Average-rate card: rates are compared, never summed. */
-export function RateCard({ label, budget, actual }: { label: string; budget: NumCell | undefined; actual: NumCell | undefined }) {
-  const b = budget?.status === 'ok' ? budget.value! : null;
+export function RateCard({ label, target, actual, icon, delay }: { label: string; target: NumCell | undefined; actual: NumCell | undefined; icon?: React.ReactNode; delay?: number }) {
+  const t = target?.status === 'ok' ? target.value! : null;
   const a = actual?.status === 'ok' ? actual.value! : null;
-  const diff = a !== null && b !== null ? a - b : null;
-  const ratio = a !== null && b ? a / b : null;
+  const diff = a !== null && t !== null ? a - t : null;
+  const ratio = a !== null && t ? a / t : null;
   const status: Status = statusFromRatio(ratio);
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-sm font-medium text-ink2">{label}</p>
-        <StatusBadge status={status} label={status === 'good' ? 'Above budget' : status === 'unknown' ? STATUS_LABEL.unknown : 'Below budget'} />
-      </div>
-      <div>
-        <p className="text-2xl font-semibold leading-tight">
-          <Num cell={actual} kind="rate" />
-        </p>
-        <p className="mt-0.5 text-xs text-muted">
-          Budget rate <Num cell={budget} kind="rate" className="font-medium text-ink2" />
-        </p>
-      </div>
-      <Meter ratio={ratio} status={status} />
-      <div className="flex items-center justify-between text-xs">
-        <Delta value={diff} kind="rate" />
-        <span className="font-semibold tabular text-ink">{ratio === null ? '—' : `${formatPct(ratio)} of budget`}</span>
-      </div>
-    </div>
-  );
-}
-
-/** Plain figure tile (no target), e.g. Sold / Registered / Outstanding. */
-export function StatTile({ label, children, sub, tone }: { label: string; children: React.ReactNode; sub?: React.ReactNode; tone?: 'brand' | 'good' | 'bad' }) {
-  return (
-    <div className="rounded-xl border border-line bg-surface p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
-      <p className={clsx('mt-1 text-2xl font-semibold tabular', tone === 'good' ? 'text-goodInk' : tone === 'bad' ? 'text-badInk' : 'text-ink')}>{children}</p>
-      {sub && <p className="mt-0.5 text-xs text-muted">{sub}</p>}
-    </div>
+    <CardFrame delay={delay}>
+      <Head label={label} icon={icon} status={status} statusLabel={status === 'good' ? 'Above target' : status === 'unknown' ? STATUS_LABEL.unknown : 'Below target'} />
+      <BigFigure cell={actual} kind="rate" />
+      <Gauge ratio={ratio} status={status} target={target} kind="rate" variance={diff} label={label} />
+    </CardFrame>
   );
 }

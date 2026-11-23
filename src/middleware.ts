@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { canAccess } from './lib/auth/roles';
 import { SESSION_COOKIE, verifySession } from './lib/auth/session';
 import { missingSettings, setupPageHtml } from './lib/env-check';
 
@@ -20,18 +19,15 @@ export async function middleware(req: NextRequest) {
     if (pathname.startsWith('/api/')) return NextResponse.json({ error: 'Not signed in' }, { status: 401 });
     const url = req.nextUrl.clone();
     url.pathname = '/login';
-    url.search = `?next=${encodeURIComponent(pathname + search)}`;
-    return NextResponse.redirect(url);
-  }
-  if (pathname !== '/forbidden' && !canAccess(session.role, pathname)) {
-    const url = req.nextUrl.clone();
-    url.pathname = '/forbidden';
-    url.search = '';
+    // a cookie that no longer verifies means the session ended: say so on the login page
+    const expired = req.cookies.has(SESSION_COOKIE) ? '&expired=1' : '';
+    url.search = `?next=${encodeURIComponent(pathname + search)}${expired}`;
     return NextResponse.redirect(url);
   }
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|nyati-logo.jpg).*)'],
+  // public files: framework assets, icons, the logo and robots.txt
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|icon.png|apple-icon.png|nyati-logo.jpg|robots.txt).*)'],
 };

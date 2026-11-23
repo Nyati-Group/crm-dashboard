@@ -40,15 +40,17 @@ export function buildKnowledge(ds: Dataset): string {
   L.push(`# Nyati Sales Dashboard data`);
   L.push(`Financial year: ${m.fiscalYear ?? 'not stated'} (April to March). Data as on: ${m.asOnLabel ?? m.asOn ?? 'not stated'}.`);
   L.push(`Projects: ${m.projects.join(', ') || 'none'}.`);
-  L.push(`Money is in Indian Rupees; 1 Cr (crore) = 1,00,00,000 and 1 Lakh = 1,00,000. Variance = Achieved − Budget. % = Achieved ÷ Budget.`);
+  L.push(`Money is in Indian Rupees; 1 Cr (crore) = 1,00,00,000 and 1 Lakh = 1,00,000. Variance = Achieved − Target. % = Achieved ÷ Target. (The source sheet labels targets "Budget"; the dashboard and these facts call them "Target".)`);
 
-  L.push('', '## Pages of the application');
-  L.push('- Overview: KPI cards (units sold, sales value, collection, area sold, average rate) for the quarter and full year, Budget vs Actual charts, % of budget achieved, project health.');
-  L.push('- Sales by Project: target vs achieved units and sales value per project, % of target, sortable table with CSV export.');
-  L.push('- Registration: units sold / registered / unregistered, registration rate, ageing of unregistered units by days since sale.');
-  L.push('- Collection & Outstanding: collection vs budget, sold value → due → collected → outstanding bridge, outstanding by age.');
-  L.push('- Project Info: configuration, buildings, total units, saleable area, RERA dates, unit split and average rates.');
-  L.push('- Filters on every page: financial year, project segment (Residential / Commercial / Total), Refresh button reloads the Google Sheet.');
+  L.push('', '## Layout of the application');
+  L.push('The application has two pages in the left navbar (collapsible): Overview, which holds every figure and chart, and AI Copilot, which is this assistant (it also opens from the Nyati logo button in the bottom-right corner of every page). The header shows the project name. The app has a light theme only. Overview sections, top to bottom:');
+  L.push('- Project at a glance: total units, saleable area, Residential / Commercial configuration and buildings, and a full project timeline (start, RERA registration, engineering completion, RERA completion, phases, months remaining, the FY quarters, and sales pace against time elapsed).');
+  L.push('- Full-year KPI cards: units sold, sales value, collection, area sold, average rate, each against target with a ring chart of % achieved.');
+  L.push('- Target vs achieved: one bullet chart with the quarter figures and the project targets, each bar showing achieved as % of target. (The sheet calls targets "Budget".)');
+  L.push('- Unit inventory & registration: units per segment split into sold-registered, sold-unregistered, unsold, premium blocked and land owner, plus sell-through (sold of units for sale).');
+  L.push('- Average selling rate by segment; Sold value → due → collected → outstanding bridge.');
+  L.push('- Outstanding by age (registered / unregistered, by segment) and unregistered units by age.');
+  L.push('- Every chart has a table view. There are no filters; the sheet is re-read automatically every minute.');
 
   const blocks = [...visibleQuarterBlocks(ds), ...(annualBlock(ds) ? [annualBlock(ds)!] : [])];
   for (const b of blocks) {
@@ -58,7 +60,7 @@ export function buildKnowledge(ds: Dataset): string {
     for (const k of PERIOD_METRICS) {
       const kind = METRIC_META[k].kind;
       L.push(
-        `- ${METRIC_META[k].label}: budget ${f(kind, budget.metrics[k])}; ${b.kind === 'annual' ? 'achieved' : 'actual'} ${f(kind, actual.metrics[k])}; variance ${f(kind, variance?.metrics[k])}; achieved ${val(pct?.metrics[k]) === null ? 'n/a' : formatPct(val(pct?.metrics[k])!, 1)} of budget`,
+        `- ${METRIC_META[k].label}: target ${f(kind, budget.metrics[k])}; ${b.kind === 'annual' ? 'achieved' : 'actual'} ${f(kind, actual.metrics[k])}; variance ${f(kind, variance?.metrics[k])}; achieved ${val(pct?.metrics[k]) === null ? 'n/a' : formatPct(val(pct?.metrics[k])!, 1)} of target`,
       );
     }
   }
@@ -84,9 +86,9 @@ export function buildKnowledge(ds: Dataset): string {
     );
   }
 
-  L.push('', '## Collection vs budget (by project)');
+  L.push('', '## Collection vs target (by project)');
   for (const r of ds.collection) {
-    L.push(`- ${r.isTotal ? 'All projects (total)' : r.project}: budget ${f('inr', r.budget)}, achieved ${f('inr', r.achieved)}, variance ${f('inr', r.variance)}, ${f('pct', r.pct)} of budget`);
+    L.push(`- ${r.isTotal ? 'All projects (total)' : r.project}: target ${f('inr', r.budget)}, achieved ${f('inr', r.achieved)}, variance ${f('inr', r.variance)}, ${f('pct', r.pct)} of target`);
   }
 
   L.push('', `## Collection summary${m.asOnLabel ? ` as on ${m.asOnLabel}` : ''}`);

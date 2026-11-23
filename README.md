@@ -2,8 +2,15 @@
 
 A web dashboard for the Sales team. It shows sales, registration, collection and outstanding by project against budget/target for the financial year (FY 2026-27, April–March). It reads the company's Google Sheet, or the `.xlsx` exported from it, and keeps the meaning of every figure exactly as it is in the source report.
 
-**Pages:** Overview · Sales by Project · Registration · Collection & Outstanding · Project Info.
-Every page has a financial-year selector, a segment filter (Residential / Commercial / Total), a "Data as on" date and a Refresh button.
+**Two tabs** in a collapsible left navbar (logo navy; expanded with tab names by default, collapses to icons only and remembers that; a slide-in drawer on phones): **Overview** and **AI Copilot**. The header shows the project name. The app uses a light theme only. The Overview, from top to bottom:
+- **Project at a glance** and the **project timeline:** phases, today marker, FY quarters, milestones and sales pace.
+- **Full-year KPI cards:** achieved against target, with a ring chart of % achieved.
+- **Target vs achieved:** one bullet chart covering the quarter and the project targets.
+- **Unit inventory & registration**, with sell-through.
+- **Average rate** and the **collection bridge.**
+- **Ageing:** outstanding by age and unregistered units by age.
+
+Related tabs share one chart, and no figure is shown twice. Every chart has a table view, and the charts animate as they scroll into view (except when the system is set to reduced motion). The header shows the project name and financial year. The old `/sales`, `/registration`, `/collection` and `/projects` links redirect to the Overview.
 
 ---
 
@@ -72,7 +79,7 @@ By default the app shows the first source that loads. Admin and Sales Head users
    - `GOOGLE_APPLICATION_CREDENTIALS=C:\secure\key.json` (keep the file outside the repo).
 4. Add `gsheet:<spreadsheet ID>|Live sheet` to `DATA_SOURCES` and restart.
 
-Data is cached for 60 seconds (`CACHE_TTL_SECONDS`). **Refresh** clears the cache and reloads the sheet.
+Data is cached for 60 seconds (`CACHE_TTL_SECONDS`). Changes in the sheet appear on the next page load after that.
 
 ---
 
@@ -120,7 +127,10 @@ The sheet has arithmetic inconsistencies, so `src/lib/data/reconcile.ts` makes e
 The checks in `src/lib/quality/rules.ts` run on the cleaned data (and in the tests) to prove it is consistent. To see the problems in the sheet itself, run `npm run check-source -- --raw gsheet-public:<ID>`.
 
 ---
-## Dashboard assistant (chatbot)
+## AI Copilot (chatbot)
+
+The **AI Copilot** tab (/copilot) is a full-page chat: suggested questions, streamed answers, Stop, Copy and New chat. On the Overview, the same copilot opens from the Nyati logo button in the bottom-right corner.
+
 
 The round Nyati-logo button at the bottom right of every page opens the assistant. It answers questions about the figures in the dashboard (sales, collection, registration, outstanding, project details, which page shows what).
 
@@ -187,7 +197,7 @@ Set the variables in the environment (or `.env.production.local` next to the app
 
 ## Login and roles (STUB)
 
-`src/lib/auth/*` is a placeholder: an HMAC-signed session cookie plus users from `AUTH_USERS="email:password:Role;…"`. Swap it for SSO or NextAuth later; the page-access map in `src/lib/auth/roles.ts` stays the same.
+`src/lib/auth/*` is a placeholder: an HMAC-signed session cookie plus users from `AUTH_USERS="email:password:Role;…"`. Swap it for SSO or NextAuth later. Every signed-in role can open the Overview; `src/lib/auth/roles.ts` lists the roles.
 
 | Role | Pages |
 |---|---|
@@ -208,8 +218,8 @@ src/lib/data/reconcile.ts    automatic clean-up of inconsistent figures
 src/lib/quality/             consistency checks (CLI + tests)
 src/lib/format.ts            Indian number / ₹ Cr-Lakh / % formatting
 src/lib/metrics.ts           variance, achievement ratio, status thresholds (thresholds in config.ts)
-src/app/(dash)/              the five pages
-src/components/              filter bar, KPI cards, chart card (chart + table view), Recharts charts, data table
+src/app/(dash)/page.tsx      the single Overview page (all sections)
+src/components/              filter bar, KPI cards, chart card (chart + table view, mounts on scroll), charts, motion helpers
 tests/                       Vitest unit + workbook tests
 scripts/                     fixtures, smoke test, check-source
 ```
@@ -217,7 +227,7 @@ scripts/                     fixtures, smoke test, check-source
 ## Extending
 
 - **More projects:** add rows/columns in the sheet. Projects and segment columns are discovered at load time, and a project filter appears automatically when there is more than one.
-- **More financial years:** add another source (one workbook or sheet per FY) to `DATA_SOURCES`. The FY selector lists every FY it finds.
+- **More financial years:** add another source (one workbook or sheet per FY) to `DATA_SOURCES`. The dashboard opens on the latest FY; open another with `?fy=FY 2025-26` in the URL.
 - **Future CRM feed (leads, site visits, bookings):** add the tab to `TAB` / `COLUMNS` and a model type in `schema.ts`, a parser function in `parse.ts`, and a page under `src/app/(dash)/`. Adapters, cache, filters and the page shell are reused.
 
 ## Data files

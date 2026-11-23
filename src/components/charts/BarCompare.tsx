@@ -2,6 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatValue, type ValueKind } from '@/lib/format';
+import { useChartAnimation } from '../motion';
 import { AXIS, TooltipBox, axisFormat, niceScale } from './chartUtils';
 
 export interface SeriesDef {
@@ -47,6 +48,7 @@ export function BarCompare({
   /** width of the category axis for horizontal bars */
   categoryWidth?: number;
 }) {
+  const anim = useChartAnimation();
   const rows = data.map((d) => ({ name: d.flag ? `${d.name} ${d.flag}` : d.name, ...d.values, __color: d.color, __footer: d.footer }));
   const showLabels = labels === 'all' || (labels === 'auto' && data.length * series.length <= 14);
   const horizontal = orientation === 'horizontal';
@@ -72,9 +74,11 @@ export function BarCompare({
       );
     }
     const neg = p.value < 0;
+    // vertical clusters are narrow: drop the unit suffix (the card subtitle states it)
+    const short = kind === 'rate' ? text.replace(/\/sq\.ft\.$/, '') : text;
     return (
       <text x={x + w / 2} y={neg ? Math.max(y, y + h) + 14 : Math.min(y, y + h) - 6} textAnchor="middle" fontSize={11} fontWeight={600} fill="rgb(var(--ink-2))">
-        {text}
+        {short}
       </text>
     );
   };
@@ -121,7 +125,7 @@ export function BarCompare({
               );
             }}
           />
-          {series.map((s) => (
+          {series.map((s, i) => (
             <Bar
               key={s.key}
               dataKey={s.key}
@@ -129,7 +133,7 @@ export function BarCompare({
               fill={s.color}
               maxBarSize={horizontal ? 30 : compact ? 44 : 56}
               radius={horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0]}
-              isAnimationActive={false}
+              {...anim(i)}
               label={showLabels ? label : false}
             >
               {series.length === 1 && rows.map((r, i) => <Cell key={i} fill={(r.__color as string) ?? s.color} />)}

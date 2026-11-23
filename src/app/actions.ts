@@ -1,13 +1,10 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { SESSION_COOKIE, signSession } from '@/lib/auth/session';
 import { authenticate } from '@/lib/auth/users';
-import { currentSession } from '@/lib/auth/current';
 import { allow } from '@/lib/chat/rate-limit';
-import { clearDataCache } from '@/lib/data/loader';
 
 export async function loginAction(_prev: { error?: string } | undefined, form: FormData): Promise<{ error?: string }> {
   const email = String(form.get('email') ?? '');
@@ -24,18 +21,14 @@ export async function loginAction(_prev: { error?: string } | undefined, form: F
     path: '/',
     maxAge,
   });
+  // success message on the next page (read and cleared by <Flash>)
+  (await cookies()).set('flash', 'signed-in', { path: '/', maxAge: 30, sameSite: 'lax' });
   // only same-site relative paths
   redirect(next.startsWith('/') && !next.startsWith('//') ? next : '/');
 }
 
 export async function logoutAction() {
   (await cookies()).delete(SESSION_COOKIE);
+  (await cookies()).set('flash', 'signed-out', { path: '/', maxAge: 30, sameSite: 'lax' });
   redirect('/login');
-}
-
-/** Refresh button: drop the 60-second cache and re-read the sheet. */
-export async function refreshDataAction() {
-  if (!(await currentSession())) return;
-  clearDataCache();
-  revalidatePath('/', 'layout');
 }
