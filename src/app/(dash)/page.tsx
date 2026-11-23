@@ -61,19 +61,19 @@ function Overview({ ds, projects }: { ds: Dataset; projects: string[] }) {
       />
       {headline ? <HeadlineKpis block={headline} /> : <EmptyState title="No target / achieved figures for this year yet." />}
 
-      <div className="grid gap-5 pt-3 xl:grid-cols-2">
+      <div className="grid gap-5 pt-3">
         <TargetsChart ds={ds} quarters={chartQuarters} projects={projects} />
         <InventoryChart ds={ds} projects={projects} />
       </div>
 
       <SectionHeading title="Pricing & collection" sub={ds.meta.asOnLabel ? `As on ${ds.meta.asOnLabel}` : undefined} />
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid gap-5">
         <RateChart ds={ds} projects={projects} />
         <CollectionBridge ds={ds} projects={projects} />
       </div>
 
       <SectionHeading title="Ageing" sub="How long amounts and registrations have been pending" />
-      <div className="grid gap-5 xl:grid-cols-2">
+      <div className="grid gap-5">
         <OutstandingAgeing ds={ds} projects={projects} />
         <RegistrationAgeing ds={ds} projects={projects} />
       </div>
