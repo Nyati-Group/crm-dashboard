@@ -40,22 +40,25 @@ export function Bullets({ groups, ariaLabel }: { groups: BulletGroup[]; ariaLabe
   const pos = (r: number) => `${(Math.max(0, Math.min(span, r)) / span) * 100}%`;
   const ticks = [0, 0.5, 1, 1.5, 2, 2.5].filter((t) => t <= span);
   let n = 0;
+  // One grid for the whole chart (rows and the scale are subgrids of it), so every bar has exactly
+  // the same width and start, and the % scale underneath lines up with the bars whatever the
+  // screen width, zoom or length of the figures.
   return (
-    <div role="img" aria-label={ariaLabel} className="space-y-5">
-      {groups.map((g) => (
-        <div key={g.title}>
-          <div className="mb-2 flex items-baseline justify-between gap-2">
+    <div role="img" aria-label={ariaLabel} className="grid grid-cols-[minmax(80px,128px)_minmax(96px,1fr)_auto] gap-x-3">
+      {groups.map((g, gi) => (
+        <div key={g.title} className={clsx('col-span-3 grid grid-cols-subgrid', gi > 0 && 'mt-5')}>
+          <div className="col-span-3 mb-2 flex items-baseline justify-between gap-2">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink2">{g.title}</p>
             {g.sub && <p className="text-[11px] text-muted">{g.sub}</p>}
           </div>
-          <ul className="space-y-2.5">
+          <ul className="col-span-3 grid grid-cols-subgrid gap-y-2.5">
             {g.items.map((it) => {
               const r = it.ratio ?? achievementRatio(it.actual, it.target);
               const status = statusFromRatio(r);
               const delay = n++ * 90;
               const variance = it.actual !== null && it.target !== null ? it.actual - it.target : null;
               return (
-                <li key={it.label} className="group relative grid grid-cols-[minmax(84px,128px)_1fr_auto] items-center gap-3">
+                <li key={it.label} className="group relative col-span-3 grid grid-cols-subgrid items-center">
                   <span className="line-clamp-2 text-sm leading-tight text-ink2" title={it.label}>
                     {it.label}
                   </span>
@@ -70,12 +73,13 @@ export function Bullets({ groups, ariaLabel }: { groups: BulletGroup[]; ariaLabe
                     />
                     <span aria-hidden className="absolute -top-1 h-[22px] w-[3px] -translate-x-1/2 rounded-full bg-ink" style={{ left: pos(1) }} />
                   </div>
-                  <span className="flex min-w-[138px] items-baseline justify-end gap-2 text-right text-xs tabular">
-                    <span className="text-ink2">
-                      <span className="font-semibold text-ink">{it.actual === null ? '—' : formatValue(it.kind, it.actual)}</span>
-                      <span className="text-muted"> / {it.target === null ? '—' : formatValue(it.kind, it.target)}</span>
+                  <span className="flex items-center justify-end gap-2 text-right text-xs tabular">
+                    {/* achieved over target, so the figures stay narrow and the bars stay long */}
+                    <span className="leading-tight">
+                      <span className="block whitespace-nowrap font-semibold text-ink">{it.actual === null ? '—' : formatValue(it.kind, it.actual)}</span>
+                      <span className="block whitespace-nowrap text-[11px] text-muted">of {it.target === null ? '—' : formatValue(it.kind, it.target)}</span>
                     </span>
-                    <span className={clsx('w-12 font-semibold', STATUS_TEXT[status])}>
+                    <span className={clsx('w-12 shrink-0 font-semibold', STATUS_TEXT[status])}>
                       {r === null ? '—' : `${formatPct(r)}`}
                       <span aria-hidden className="ml-0.5 text-[9px]">
                         {STATUS_MARK[status]}
@@ -105,8 +109,8 @@ export function Bullets({ groups, ariaLabel }: { groups: BulletGroup[]; ariaLabe
           </ul>
         </div>
       ))}
-      {/* shared scale */}
-      <div className="grid grid-cols-[minmax(84px,120px)_1fr_auto] gap-3 text-[10px] text-muted">
+      {/* shared scale: same column as the bars */}
+      <div className="col-span-3 mt-3 grid grid-cols-subgrid text-[10px] text-muted">
         <span />
         <div className="relative h-3">
           {ticks.map((t) => (
@@ -115,7 +119,7 @@ export function Bullets({ groups, ariaLabel }: { groups: BulletGroup[]; ariaLabe
             </span>
           ))}
         </div>
-        <span className="min-w-[138px]" />
+        <span />
       </div>
     </div>
   );
