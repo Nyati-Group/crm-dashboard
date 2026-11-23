@@ -40,29 +40,42 @@ export function Bullets({ groups, ariaLabel }: { groups: BulletGroup[]; ariaLabe
   const pos = (r: number) => `${(Math.max(0, Math.min(span, r)) / span) * 100}%`;
   const ticks = [0, 0.5, 1, 1.5, 2, 2.5].filter((t) => t <= span);
   let n = 0;
-  // One grid for the whole chart (rows and the scale are subgrids of it), so every bar has exactly
-  // the same width and start, and the % scale underneath lines up with the bars whatever the
-  // screen width, zoom or length of the figures.
+  // Each row: name and figures on one line, the bar underneath at the FULL width of the card.
+  // The bars never share a line with text, so they keep the same, full length at any zoom,
+  // screen size or card width, and the % scale below lines up with all of them.
   return (
-    <div role="img" aria-label={ariaLabel} className="grid grid-cols-[minmax(80px,128px)_minmax(96px,1fr)_auto] gap-x-3">
+    <div role="img" aria-label={ariaLabel}>
       {groups.map((g, gi) => (
-        <div key={g.title} className={clsx('col-span-3 grid grid-cols-subgrid', gi > 0 && 'mt-5')}>
-          <div className="col-span-3 mb-2 flex items-baseline justify-between gap-2">
+        <div key={g.title} className={clsx(gi > 0 && 'mt-5')}>
+          <div className="mb-2.5 flex items-baseline justify-between gap-2 border-b border-line/70 pb-1.5">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink2">{g.title}</p>
             {g.sub && <p className="text-[11px] text-muted">{g.sub}</p>}
           </div>
-          <ul className="col-span-3 grid grid-cols-subgrid gap-y-2.5">
+          <ul className="space-y-3">
             {g.items.map((it) => {
               const r = it.ratio ?? achievementRatio(it.actual, it.target);
               const status = statusFromRatio(r);
               const delay = n++ * 90;
               const variance = it.actual !== null && it.target !== null ? it.actual - it.target : null;
               return (
-                <li key={it.label} className="group relative col-span-3 grid grid-cols-subgrid items-center">
-                  <span className="line-clamp-2 text-sm leading-tight text-ink2" title={it.label}>
-                    {it.label}
-                  </span>
-                  <div className="relative h-3.5 rounded-full bg-[rgb(var(--grid))]">
+                <li key={it.label} className="group relative">
+                  <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                    <span className="min-w-0 truncate text-sm text-ink2" title={it.label}>
+                      {it.label}
+                    </span>
+                    <span className="flex shrink-0 items-baseline gap-2.5 text-xs tabular">
+                      <span className="whitespace-nowrap text-muted">
+                        <span className="text-[13px] font-semibold text-ink">{it.actual === null ? '—' : formatValue(it.kind, it.actual)}</span> of {it.target === null ? '—' : formatValue(it.kind, it.target)}
+                      </span>
+                      <span className={clsx('w-12 text-right font-semibold', STATUS_TEXT[status])}>
+                        {r === null ? '—' : `${formatPct(r)}`}
+                        <span aria-hidden className="ml-0.5 text-[9px]">
+                          {STATUS_MARK[status]}
+                        </span>
+                      </span>
+                    </span>
+                  </div>
+                  <div className="relative h-3 rounded-full bg-[rgb(var(--grid))]">
                     {/* 50% steps as faint guides */}
                     {ticks.slice(1).map((t) => (
                       <span key={t} aria-hidden className="absolute top-0 h-full w-px bg-surface/80" style={{ left: pos(t) }} />
@@ -71,23 +84,10 @@ export function Bullets({ groups, ariaLabel }: { groups: BulletGroup[]; ariaLabe
                       className="animate-grow absolute left-0 top-0 h-full rounded-full transition-[filter] group-hover:brightness-110"
                       style={{ width: r === null ? 0 : pos(r), background: STATUS_FILL[status], animationDelay: `${delay}ms` }}
                     />
-                    <span aria-hidden className="absolute -top-1 h-[22px] w-[3px] -translate-x-1/2 rounded-full bg-ink" style={{ left: pos(1) }} />
+                    <span aria-hidden className="absolute -top-1 h-5 w-[3px] -translate-x-1/2 rounded-full bg-ink" style={{ left: pos(1) }} />
                   </div>
-                  <span className="flex items-center justify-end gap-2 text-right text-xs tabular">
-                    {/* achieved over target, so the figures stay narrow and the bars stay long */}
-                    <span className="leading-tight">
-                      <span className="block whitespace-nowrap font-semibold text-ink">{it.actual === null ? '—' : formatValue(it.kind, it.actual)}</span>
-                      <span className="block whitespace-nowrap text-[11px] text-muted">of {it.target === null ? '—' : formatValue(it.kind, it.target)}</span>
-                    </span>
-                    <span className={clsx('w-12 shrink-0 font-semibold', STATUS_TEXT[status])}>
-                      {r === null ? '—' : `${formatPct(r)}`}
-                      <span aria-hidden className="ml-0.5 text-[9px]">
-                        {STATUS_MARK[status]}
-                      </span>
-                    </span>
-                  </span>
                   {/* hover card */}
-                  <div className="pointer-events-none absolute left-[128px] top-6 z-20 hidden min-w-[220px] rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-xl group-hover:block">
+                  <div className="pointer-events-none absolute left-0 top-full z-20 mt-1 hidden min-w-[220px] rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-xl group-hover:block">
                     <p className="mb-1 font-semibold text-ink">
                       {g.title} · {it.label}
                     </p>
@@ -109,17 +109,17 @@ export function Bullets({ groups, ariaLabel }: { groups: BulletGroup[]; ariaLabe
           </ul>
         </div>
       ))}
-      {/* shared scale: same column as the bars */}
-      <div className="col-span-3 mt-3 grid grid-cols-subgrid text-[10px] text-muted">
-        <span />
-        <div className="relative h-3">
-          {ticks.map((t) => (
-            <span key={t} className="absolute -translate-x-1/2 tabular" style={{ left: pos(t) }}>
-              {formatPct(t)}
-            </span>
-          ))}
-        </div>
-        <span />
+      {/* shared scale, full width like the bars; the end labels stay inside the card */}
+      <div className="relative mt-2 h-3 text-[10px] text-muted">
+        {ticks.map((t, i) => (
+          <span
+            key={t}
+            className={clsx('absolute tabular', i === 0 ? '' : i === ticks.length - 1 && t === span ? '-translate-x-full' : '-translate-x-1/2')}
+            style={{ left: pos(t) }}
+          >
+            {formatPct(t)}
+          </span>
+        ))}
       </div>
     </div>
   );
